@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-func worker(dTP []int, results chan []int) {
+func worker(dTP []int, results chan<- []int) {
 
 	result := make([]int, len(dTP))
 	for i, v := range dTP {

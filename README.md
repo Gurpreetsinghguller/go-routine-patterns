@@ -108,55 +108,6 @@ Race between a result channel and a timer using `select`. Whichever fires first 
 
 > **Rule:** Always pair a long-running goroutine with a timeout to prevent goroutine leaks.
 
-```go
-// ⚠️ Basic — has goroutine leak on timeout
-func doWork() <-chan string {
-    result := make(chan string, 1)
-    go func() {
-        time.Sleep(2 * time.Second) // simulate slow work
-        result <- "done"
-    }()
-    return result
-}
-
-func main() {
-    select {
-    case res := <-doWork():
-        fmt.Println("Got result:", res)
-    case <-time.After(1 * time.Second):
-        fmt.Println("Timed out!")
-        // goroutine inside doWork() is still running!
-    }
-}
-```
-
-```go
-// ✅ Better — use context.WithTimeout to cancel properly
-func doWork(ctx context.Context) <-chan string {
-    result := make(chan string, 1)
-    go func() {
-        select {
-        case <-time.After(2 * time.Second):
-            result <- "done"
-        case <-ctx.Done():
-            return // properly cancelled, no leak
-        }
-    }()
-    return result
-}
-
-func main() {
-    ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-    defer cancel()
-
-    select {
-    case res := <-doWork(ctx):
-        fmt.Println("Got result:", res)
-    case <-ctx.Done():
-        fmt.Println("Timed out!")
-    }
-}
-```
 
 ---
 
@@ -177,27 +128,6 @@ When G1 finishes:  <-sem          🔓  G4 unblocks
 
 > **Rule:** Acquire (send) before starting work, release (receive) when done. Buffer size = max concurrency.
 
-```go
-func main() {
-    sem := make(chan struct{}, 3) // allow max 3 concurrent goroutines
-    var wg sync.WaitGroup
-
-    for i := 0; i < 10; i++ {
-        wg.Add(1)
-        go func(id int) {
-            defer wg.Done()
-
-            sem <- struct{}{}        // acquire: blocks if 3 already running
-            defer func() { <-sem }() // release on exit
-
-            fmt.Printf("Worker %d running\n", id)
-            time.Sleep(500 * time.Millisecond)
-        }(i)
-    }
-
-    wg.Wait()
-}
-```
 
 > 💡 **Tip:** `struct{}` uses zero bytes. Always prefer `chan struct{}` over `chan bool` or `chan int` for semaphores and signals.
 
