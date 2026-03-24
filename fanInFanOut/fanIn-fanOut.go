@@ -4,8 +4,8 @@ import (
 	"sync"
 )
 
-func worker(dTP []int, results chan []int, wg *sync.WaitGroup) {
-	defer wg.Done()
+func worker(dTP []int, results chan []int) {
+
 	result := make([]int, len(dTP))
 	for i, v := range dTP {
 		result[i] = v * 2
@@ -14,8 +14,6 @@ func worker(dTP []int, results chan []int, wg *sync.WaitGroup) {
 
 }
 
-// 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 func Manager() []int {
 	dataToBeProcessed := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	numberOfWorkers := 3
@@ -30,12 +28,16 @@ func Manager() []int {
 			end = len(dataToBeProcessed)
 		}
 		wg.Add(1)
-		go worker(dataToBeProcessed[start:end], results, &wg)
+		go func() {
+			defer wg.Done()
+			worker(dataToBeProcessed[start:end], results)
+		}()
 	}
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
+
 	for r := range results {
 		resultingData = append(resultingData, r...)
 	}
