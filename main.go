@@ -1,17 +1,13 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/Gurpreetsinghguller/go-routine-patterns/fanInFanOut"
-	"github.com/Gurpreetsinghguller/go-routine-patterns/semaphore"
-	timeoutselect "github.com/Gurpreetsinghguller/go-routine-patterns/timeoutSelect"
-	"github.com/Gurpreetsinghguller/go-routine-patterns/workerpool"
+	"github.com/Gurpreetsinghguller/go-routine-patterns/pipeline"
 )
 
 func main() {
-	fmt.Println(fanInFanOut.Manager())
-	fmt.Println(workerpool.Manager())
-	fmt.Println(timeoutselect.Manager())
-	fmt.Println(semaphore.Manager())
+	// fmt.Println(fanInFanOut.Manager())
+	// fmt.Println(workerpool.Manager())
+	// fmt.Println(timeoutselect.Manager2())
+	// fmt.Println(semaphore.Manager())
+	pipeline.PipeLine()
 }

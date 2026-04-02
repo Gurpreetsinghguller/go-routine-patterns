@@ -48,3 +48,27 @@ func Manager() []int {
 	cancel()
 	return processedData
 }
+func Manager2() []int {
+	dataToBeProcessed := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	processedData := []int{}
+	job := make(chan int)
+	result := make(chan int)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		worker(ctx, job, result)
+	}()
+
+	go func() {
+		for i := 0; i < len(dataToBeProcessed); i++ {
+			job <- dataToBeProcessed[i]
+		}
+		close(job)
+	}()
+
+	for r := range result {
+		processedData = append(processedData, r)
+	}
+
+	return processedData
+}
